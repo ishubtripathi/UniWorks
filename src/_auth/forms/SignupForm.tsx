@@ -28,8 +28,10 @@ const SignupForm = () => {
   async function onSubmit(values: z.infer<typeof SignupValidation>) {
     // create the user
     const newUser = await createUserAccount(values);
-    
-    console.log(newUser)
+
+    if(!newUser){
+      return;
+    }
 
   }
   return (
@@ -56,7 +58,7 @@ const SignupForm = () => {
           />
           <FormField
             control={form.control}
-            name="Username"
+            name="username"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Username</FormLabel>
@@ -69,7 +71,7 @@ const SignupForm = () => {
           />
           <FormField
             control={form.control}
-            name="Email"
+            name="email"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Email</FormLabel>
