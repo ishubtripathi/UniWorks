@@ -2,11 +2,9 @@ import {
     useMutation,
     useQueryClient,
 } from '@tanstack/react-query';
-import { INewPost, INewUser, IUpdatePost } from '../../types';
-import { createUserAccount, signInAccount, signOutAccount } from '../appwrite/api';
+import { INewPost, INewUser } from '../../types';
+import { createUserAccount, signInAccount, signOutAccount, createPost } from '../appwrite/api'; // Ensure this is the correct function for post creation
 import { QUERY_KEYS } from './queryKeys';  
-import { CreatePost } from '../../_root/pages';
-
 
 // For creating a new user
 export const useCreateUserAccount = () => {
@@ -21,7 +19,7 @@ export const useSignInAccount = () => {
         mutationFn: (user: { email: string; password: string }) => signInAccount(user),
     });
 };
-
+ 
 // For signing out
 export const useSignOutAccount = () => {
     return useMutation({
@@ -33,7 +31,7 @@ export const useSignOutAccount = () => {
 export const useCreatePost = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (post: INewPost) => CreatePost(post),
+        mutationFn: (post: INewPost) => createPost(post), // Use the correct function that returns a promise
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
@@ -41,6 +39,3 @@ export const useCreatePost = () => {
         },
     });
 };
-
-
-// For updating a post

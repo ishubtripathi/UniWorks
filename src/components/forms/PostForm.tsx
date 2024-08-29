@@ -13,7 +13,7 @@ import { useToast } from "../ui/use-toast";
 import FileUploader from "../shared/FileUploader";
 import { Loader } from "lucide-react";
 import { PostValidation } from "../../lib/validation";
-import { useCreatePost, useUpdatePost } from "../../lib/react-query/queriesAndMutations"; 
+import { useCreatePost } from "../../lib/react-query/queriesAndMutations"; 
 
 // Define or import PostValidation schema
 // const PostValidation = z.object({
@@ -29,6 +29,12 @@ type PostFormProps = {
 };
 
 const PostForm = ({ post, action }: PostFormProps) => {
+
+  // Query
+  const { mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
+  // const { mutateAsync: updatePost, isLoading: isLoadingUpdate } = useUpdatePost();
+
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useUserContext();
@@ -44,9 +50,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
     },
   });
 
-  // Query
-  const { mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
-  // const { mutateAsync: updatePost, isLoading: isLoadingUpdate } = useUpdatePost();
+
 
   // Handler
   async function onSubmit(values: z.infer<typeof PostValidation>) {
@@ -60,6 +64,8 @@ const PostForm = ({ post, action }: PostFormProps) => {
         title: 'Please try again'
       })
     }
+
+    navigate('/');
   }
 
   return (
@@ -148,10 +154,12 @@ const PostForm = ({ post, action }: PostFormProps) => {
           <Button
             type="submit"
             className="shad-button_primary whitespace-nowrap"
-            disabled={isLoadingCreate || isLoadingUpdate}
+            // disabled={isLoadingCreate || isLoadingUpdate}
+            disabled={isLoadingCreate}
           >
-            {(isLoadingCreate || isLoadingUpdate) && <Loader />}
-            {action} Post
+            {/* {(isLoadingCreate || isLoadingUpdate) && <Loader />} */}
+            {(isLoadingCreate ) && <Loader />}
+            {action} Submit
           </Button>
         </div>
       </form>

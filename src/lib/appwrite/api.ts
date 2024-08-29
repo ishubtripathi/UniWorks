@@ -1,7 +1,27 @@
 import { ID, Query } from "appwrite";
 
-import { INewUser } from "../../types";
-import { appwriteConfig, account, databases, avatars } from "./config";
+import { INewPost, INewUser } from "../../types";
+import { appwriteConfig, account, databases, avatars, storage } from "./config";
+
+
+
+
+// Define or import `uploadFile` and `getFilePreview`
+async function uploadFile(file: File) {
+  try {
+    const uploadedFile = await storage.createFile(appwriteConfig.storageId, ID.unique(), file);
+    return uploadedFile;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+  }
+}
+
+function getFilePreview(fileId: string): string {
+  // Ensure getFilePreview returns a string URL
+  return storage.getFilePreview(appwriteConfig.storageId, fileId).toString();
+}
+
+
 
 // ============================================================
 // AUTH
@@ -26,7 +46,7 @@ export async function createUserAccount(user: INewUser) {
       name: newAccount.name,
       email: newAccount.email,
       username: user.username,
-      imageUrl: avatarUrl,
+      imageUrl: avatarUrl.toString(), 
     });
 
     return newUser;
@@ -40,7 +60,7 @@ export async function saveUserToDB(user: {
   accountId: string;
   email: string;
   name: string;
-  imageUrl: URL;
+  imageUrl: string;
   username?: string;
 }) {
   try {
@@ -105,6 +125,63 @@ export async function signOutAccount() {
   try {
     const session = await account.deleteSession("current");
     return session;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+// ============================== CREATE POST
+export async function createPost(post: INewPost) {
+  try {
+    // Upload file to appwrite storage
+    const uploadedFile = await uploadFile(post.file[0]);
+
+    if (!uploadedFile) throw Error;
+
+    // Get file url
+    const fileUrl = getFilePreview(uploadedFile.$id);
+    if (!fileUrl) {
+      await deleteFile(uploadedFile.$id);
+      throw Error;
+    }
+
+    // Convert tags into array
+    const tags = post.tags?.replace(/ /g, "").split(",") || [];
+
+    // Create post
+    const newPost = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      ID.unique(),
+      {
+        creator: post.userId,
+        caption: post.caption,
+        imageUrl: fileUrl,
+        imageId: uploadedFile.$id,
+        location: post.location,
+        tags: tags,
+      }
+    );
+
+    if (!newPost) {
+      await deleteFile(uploadedFile.$id);
+      throw Error;
+    }
+
+    return newPost;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+// ============================== DELETE FILE
+export async function deleteFile(fileId: string) {
+  try {
+    await storage.deleteFile(appwriteConfig.storageId, fileId);
+
+    return { status: "ok" };
   } catch (error) {
     console.log(error);
   }
