@@ -5,6 +5,9 @@
     { "path": "./tsconfig.node.json" }
   ],
   // shadcn
+  "noUnusedLocals": true,
+  "noUnusedParameters": true,
+  "noFallthroughCasesInSwitch": true,
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
@@ -12,4 +15,3 @@
     }
   }
 }
-
