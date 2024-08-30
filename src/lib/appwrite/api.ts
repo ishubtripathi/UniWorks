@@ -7,7 +7,7 @@ import { appwriteConfig, account, databases, avatars, storage } from "./config";
 // ============================================================
 
 // Upload a file to Appwrite storage
-async function uploadFile(file: File) {
+export async function uploadFile(file: File) {
   try {
     // Check if storageId is defined
     if (!appwriteConfig.storageId) {
@@ -28,36 +28,7 @@ async function uploadFile(file: File) {
   }
 }
 
-// Get a file preview URL from Appwrite storage
-function getFilePreview(fileId: string): string {
-  try {
-    // Check if storageId is defined
-    if (!appwriteConfig.storageId) {
-      throw new Error("Storage bucket ID is not defined in the configuration.");
-    }
 
-    // Generate file preview URL
-    return storage.getFilePreview(appwriteConfig.storageId, fileId).toString();
-  } catch (error: any) { // Explicitly typing error as 'any'
-    console.error("Error getting file preview:", error.message || error);
-    return "";
-  }
-}
-
-// Delete a file from Appwrite storage
-export async function deleteFile(fileId: string) {
-  try {
-    // Check if storageId is defined
-    if (!appwriteConfig.storageId) {
-      throw new Error("Storage bucket ID is not defined in the configuration.");
-    }
-
-    await storage.deleteFile(appwriteConfig.storageId, fileId);
-    return { status: "ok" };
-  } catch (error: any) { // Explicitly typing error as 'any'
-    console.error("Error deleting file:", error.message || error);
-  }
-}
 
 // ============================================================
 // AUTH
@@ -184,7 +155,7 @@ export async function createPost(post: INewPost) {
     }
 
     // Convert tags into array
-    const tags = post.tags?.replace(/ /g, "").split(",") || [];
+    const tags = post.tags?.replace(/ /g, '').split(',') || [];
 
     // Create post
     const newPost = await databases.createDocument(
@@ -210,4 +181,76 @@ export async function createPost(post: INewPost) {
   } catch (error: any) { // Explicitly typing error as 'any'
     console.error("Error creating post:", error.message || error);
   }
+}
+
+
+// Get a file preview URL from Appwrite storage
+// function getFilePreview(fileId: string) {
+//   try{
+//     const fileUrl = storage.getFilePreview(
+//       appwriteConfig.storageId,
+//       fileId,
+//       2000,
+//       2000,
+//       "center",
+//       100,
+//     )
+
+//     return fileUrl;
+//   } catch (error){
+//     console.log(error);
+//   }
+// }
+
+
+// Get a file preview URL from Appwrite storage
+export function getFilePreview(fileId: string) {
+  try {
+    const validGravities: Array<string> = ["center", "north", "south", "east", "west"]; // Adjust this list based on valid options
+    const gravity = "center"; // Set a default or fetch from a variable
+    
+    if (!validGravities.includes(gravity)) {
+      throw new Error(`Invalid gravity value: ${gravity}. Must be one of ${validGravities.join(", ")}`);
+    }
+
+    const fileUrl = storage.getFilePreview(
+      appwriteConfig.storageId,
+      fileId,
+      2000, // width
+      2000, // height
+      gravity as any, // use a valid gravity value
+      100 // quality
+    );
+
+    return fileUrl;
+  } catch (error: any) {
+    console.error("Error getting file preview:", error.message || error);
+  }
+}
+
+
+// Delete a file from Appwrite storage
+export async function deleteFile(fileId: string) {
+  try {
+    // Check if storageId is defined
+    if (!appwriteConfig.storageId) {
+      throw new Error("Storage bucket ID is not defined in the configuration.");
+    }
+
+    await storage.deleteFile(appwriteConfig.storageId, fileId);
+    return { status: "ok" };
+  } catch (error: any) { // Explicitly typing error as 'any'
+    console.error("Error deleting file:", error.message || error);
+  }
+}
+
+export async function getRecentPosts(){
+  const posts = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.postCollectionId,
+    [Query.orderDesc('$createdAt'), Query.limit(20)]
+  )
+
+  if(!posts) throw Error;
+  return posts;
 }
