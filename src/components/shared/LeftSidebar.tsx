@@ -31,7 +31,7 @@ const LeftSidebar = () => {
           <img
             src="/assets/images/UNIWORK.gif"
             alt="logo"
-            width={170}
+            width={205}
             height={36}
           />
         </Link>
