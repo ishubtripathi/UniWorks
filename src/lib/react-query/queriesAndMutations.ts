@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { INewPost, INewUser } from "../../types";
+import { INewPost, INewUser, IUpdatePost } from "../../types";
 import {
   createUserAccount,
   signInAccount,
@@ -10,6 +10,9 @@ import {
   savePost,
   deleteSavedPost,
   getCurrentUser,
+  getPostById,
+  updatePost,
+  deletePost,
 } from "../appwrite/api"; // Ensure this is the correct function for post creation
 import { QUERY_KEYS } from "./queryKeys";
 
@@ -129,4 +132,43 @@ export const useGetCurrentUser = () => {
     queryKey: [QUERY_KEYS.GET_CURRENT_USER],
     queryFn: getCurrentUser,
   });
+};
+
+// for editing post
+export const useGetPostById = (postId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_POST_BY_ID, postId],
+    queryFn: () => getPostById(postId),
+    enabled: !!postId
+  })
+}
+
+// for updating the post
+export const useUpdatePost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (post: IUpdatePost) => updatePost(post),
+    onSuccess: (data) => {
+      if (data && "$id" in data) {
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEYS.GET_POST_BY_ID, data.$id],
+        });
+      } else {
+        console.error("No ID found in updated post data");
+      }
+    },
+  });
+};
+
+export const useDeletePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ postId, imageId}: { postId: string, imageId: string}) => deletePost(postId, imageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
+      })
+    }
+  })
 }

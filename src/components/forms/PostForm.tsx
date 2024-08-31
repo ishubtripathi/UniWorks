@@ -11,9 +11,8 @@ import { Textarea } from "../ui/textarea";
 import { useUserContext } from "../../context/AuthContext";
 import { useToast } from "../ui/use-toast";
 import FileUploader from "../shared/FileUploader";
-import { Loader } from "lucide-react";
 import { PostValidation } from "../../lib/validation";
-import { useCreatePost } from "../../lib/react-query/queriesAndMutations"; 
+import { useCreatePost, useUpdatePost } from "../../lib/react-query/queriesAndMutations"; 
 
 // Define or import PostValidation schema
 // const PostValidation = z.object({
@@ -25,14 +24,15 @@ import { useCreatePost } from "../../lib/react-query/queriesAndMutations";
 
 type PostFormProps = {
   post?: Models.Document;
-  action: "Create" | "Update";
+  action: 'Create' | 'Update';
 };
 
 const PostForm = ({ post, action }: PostFormProps) => {
 
   // Query
   const { mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
-  // const { mutateAsync: updatePost, isLoading: isLoadingUpdate } = useUpdatePost();
+  const { mutateAsync: updatePost, isPending: isLoadingUpdate } = useUpdatePost();
+  
 
 
   const navigate = useNavigate();
@@ -54,6 +54,24 @@ const PostForm = ({ post, action }: PostFormProps) => {
 
   // Handler
   async function onSubmit(values: z.infer<typeof PostValidation>) {
+    if(post && action === 'Update'){
+      const updatedPost = await updatePost({
+        ...values,
+        postId: post.$id,
+        imageId: post?.imageId,
+        imageUrl: post?.imageUrl,
+      })
+
+      if(!updatedPost){
+        toast({
+          title: 'Please try again'
+        })
+      }
+
+      return navigate(`/posts/${post.$id}`)
+    }
+
+
     const newPost = await createPost({
       ...values,
       userId: user.id,
@@ -154,17 +172,17 @@ const PostForm = ({ post, action }: PostFormProps) => {
           <Button
             type="submit"
             className="shad-button_primary whitespace-nowrap"
-            // disabled={isLoadingCreate || isLoadingUpdate}
-            disabled={isLoadingCreate}
+            disabled={isLoadingCreate || isLoadingUpdate}
+            // disabled={isLoadingCreate}
           >
-            {/* {(isLoadingCreate || isLoadingUpdate) && <Loader />} */}
-            {(isLoadingCreate ) && <Loader />}
-            {action} Submit
+            {isLoadingCreate || isLoadingUpdate && 'Loading...'}
+            {/* {(isLoadingCreate ) && <Loader />} */}
+            {action} Post
           </Button>
         </div>
       </form>
     </Form>
-  );
-};
+  )
+}
 
 export default PostForm;
