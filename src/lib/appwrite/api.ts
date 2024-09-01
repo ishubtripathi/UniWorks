@@ -255,22 +255,30 @@ export async function getInfinitePosts({ pageParam }: { pageParam: number }) {
 
 // ============================== GET POST BY ID
 export async function getPostById(postId?: string) {
-  if (!postId) throw Error;
+  if (!postId) {
+    console.error('Invalid postId provided');
+    return null; // Return null or some default value to handle invalid postId
+  }
 
   try {
     const post = await databases.getDocument(
       appwriteConfig.databaseId,
       appwriteConfig.postCollectionId,
       postId
-    )
+    );
 
-    if (!post) throw Error;
+    if (!post) {
+      console.error('Post not found');
+      return null; // Return null if no post is found
+    }
 
-    return post;
+    return post; // Return the fetched post
   } catch (error) {
-    console.log(error);
+    console.error('Error fetching post:', error);
+    return null; // Return null on error
   }
 }
+
 
 // ============================== UPDATE POST
 export async function updatePost(post: IUpdatePost) {

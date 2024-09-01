@@ -5,9 +5,10 @@ import Loader from "../../components/shared/Loader";
 
 const EditPost = () => {
   const { id } = useParams();
-  const { data: post, isPending } = useGetPostById(id || '');
+  const { data: post, isLoading, error } = useGetPostById(id || '');
 
-  if (isPending) return <Loader/>
+  if (isLoading) return <Loader />;
+  if (error || !post) return <div>Failed to load post data. Please try again.</div>;
 
   return (
     <div className="flex flex-1">
@@ -22,10 +23,10 @@ const EditPost = () => {
           <h2 className="h3-bold md:h2-bold text-left w-full">Edit Post</h2>
         </div>
 
-        <PostForm action="Update" post={post}/>
+        <PostForm action="Update" post={post} />
       </div>
     </div>
   );
 };
 
-export default EditPost
+export default EditPost;

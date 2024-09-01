@@ -13,6 +13,7 @@ import {
   getPostById,
   updatePost,
   deletePost,
+  getUserPosts,
 } from "../appwrite/api"; // Ensure this is the correct function for post creation
 import { QUERY_KEYS } from "./queryKeys";
 
@@ -172,3 +173,12 @@ export const useDeletePost = () => {
     }
   })
 }
+
+// get user posts
+export const useGetUserPosts = (userId?: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_USER_POSTS, userId],
+    queryFn: () => getUserPosts(userId),
+    enabled: !!userId,
+  });
+};
